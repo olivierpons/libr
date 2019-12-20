@@ -1,0 +1,14 @@
+Pillow>=6.2.1
+unidecode>=1.1.1
+python-dateutil>=2.8.1
+mixer>=6.1.3
+requests>=2.22
+Django>=3.0.1
+django-cors-headers>=3.2.0
+djangorestframework>=3.11.0
+psycopg2>=2.8.4
+pytz>=2019.3
+sqlparse>=0.3.0
+python-magic>=0.4.15
+fcm-django>=0.3.3
+django-crontab==0.7.1
