@@ -19,14 +19,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'app.apps.AppConfig',
+    'core.apps.CoreConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core.apps.CoreConfig',
-    'app.apps.AppConfig',
 ]
 
 MIDDLEWARE = [
@@ -98,6 +98,7 @@ UPLOAD_FOLDER_DOCUMENTS = 'documents'
 UPLOAD_FOLDER_IMAGES = 'images'
 THUMBNAIL_DIMENSIONS = (1125, 2436)  # iPhone X resolution
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
 
 # region -- geometry constants --
 GEOMETRY_DEFAULT_SRID = 4326

@@ -4,6 +4,7 @@ from os.path import dirname, basename
 import PIL
 from PIL import Image, ExifTags
 from django.db import models
+from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 
@@ -21,6 +22,7 @@ class ImageFile(BaseFile):
     def file_field(self):
         return self.image_file
 
+    # region - url_thumbnail() -
     def url_thumbnail(self, default=None):
         if self.file_field:
             if self.file_field.name.startswith('./'):
@@ -32,9 +34,11 @@ class ImageFile(BaseFile):
                             f'{basename(relative_name)}'
             return reverse_lazy('url_public', args=(relative_name,))
         if default:
-            return staticfiles.static(default)
-        return staticfiles.static('img/no-image-yet.jpg')
+            return static(default)
+        return static('img/no-image-yet.jpg')
+    # endregion - url_thumbnail() -
 
+    # region - generate_thumbnail() -
     def generate_thumbnail(self, img, dimensions=settings.THUMBNAIL_DIMENSIONS):
         w_thumbnail, h_thumbnail = dimensions
         # calculate how much we need to resize for both dimensions:
@@ -50,6 +54,7 @@ class ImageFile(BaseFile):
         thumbnail_filename = f'{path_thumbnail}{os.sep}' \
                              f'{basename(full_filename)}'
         img.save(thumbnail_filename)
+    # endregion - generate_thumbnail() -
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
