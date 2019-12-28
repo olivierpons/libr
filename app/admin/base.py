@@ -3,6 +3,7 @@ import copy
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import AdminSite
 
+from app.admin.file import ImageFileAdmin
 from app.models.book.page import BookPage
 from app.models.book.paragraph import BookParagraph
 from core.models.activity import Activity
@@ -95,7 +96,7 @@ my_admin_site.register(EntityLink)
 my_admin_site.register(EntityPhone)
 my_admin_site.register(ChatDocument)
 my_admin_site.register(DocumentFile)
-my_admin_site.register(ImageFile)
+my_admin_site.register(ImageFile, ImageFileAdmin)
 my_admin_site.register(GeoPoint)
 my_admin_site.register(LinkType)
 my_admin_site.register(PersonConfirmation)

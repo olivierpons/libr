@@ -1,20 +1,61 @@
 import os
+from django.utils.translation import gettext_lazy as _
+from ast import literal_eval
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o1w0yb+u%28@usp6$97^7oa#g=^*voo2inf6b)w&8g-u+z4!c)'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 ALLOWED_HOSTS = []
 
+# region -custom settings (to put in environment settings) -
+environment_variables = {
+    # SECURITY WARNING: don't run with debug turned on in production!
+    'DEBUG': {'required': True, 'parser': bool},
+    'SECRET_KEY': {'required': True, },
+    'MEDIA_ROOT': {'default': 'uploads'},
+    # set it to None = no limit to be able to send huge amount of data:
+    'DATA_UPLOAD_MAX_NUMBER_FIELDS': {'required': True, 'parser': eval},
+    # for uploads
+    'UPLOAD_FOLDER_DOCUMENTS': {'default': 'documents'},
+    'UPLOAD_FOLDER_CHATS_DOCUMENT': {'default': 'chats/documents'},
+    'UPLOAD_FOLDER_IMAGES': {'default': 'images'},
+    'THUMBNAIL_SUBDIRECTORY': {'default': 'th'},
+    'THUMBNAIL_DIMENSIONS': {'default': '(1125, 2436)',   # iPhone X resolution
+                             'parser': eval},
+}
+
+settings = {}
+errors = []
+for var, infos in environment_variables.items():
+    if var in os.environ:
+        settings[var] = os.environ[var]
+    elif 'default' in infos:
+        settings[var] = infos['default']
+    elif 'required' in infos:
+        errors.append(var)
+        continue
+    if 'parser' in infos:
+        settings[var] = infos['parser'](settings[var])
+
+if len(errors):
+    raise Exception("Please set the environment variables: "
+                    "{}.".format(', '.join(errors)))
+
+MEDIA_ROOT = settings['MEDIA_ROOT']
+SECRET_KEY = settings['SECRET_KEY']
+DEBUG = settings['DEBUG']
+DATA_UPLOAD_MAX_NUMBER_FIELDS = settings['DATA_UPLOAD_MAX_NUMBER_FIELDS']
+UPLOAD_FOLDER_DOCUMENTS = settings['UPLOAD_FOLDER_DOCUMENTS']
+UPLOAD_FOLDER_CHATS_DOCUMENT = settings['UPLOAD_FOLDER_CHATS_DOCUMENT']
+UPLOAD_FOLDER_IMAGES = settings['UPLOAD_FOLDER_IMAGES']
+THUMBNAIL_SUBDIRECTORY = settings['THUMBNAIL_SUBDIRECTORY']
+THUMBNAIL_DIMENSIONS = settings['THUMBNAIL_DIMENSIONS']
+
+# endregion -custom settings (to put in environment settings) -
 
 # Application definition
 
@@ -62,7 +103,7 @@ WSGI_APPLICATION = 'libr.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
+# https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -73,8 +114,7 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
-
+# https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 DJANGO_AUTH_VALIDATION = 'django.contrib.auth.password_validation'
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': f'{DJANGO_AUTH_VALIDATION}.UserAttributeSimilarityValidator', },
@@ -84,21 +124,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-LANGUAGE_CODE = 'fr'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-# custom settings (to put in an external file)
-MEDIA_ROOT = './uploads'
-THUMBNAIL_SUBDIRECTORY = 'th'
-UPLOAD_FOLDER_CHATS_DOCUMENT = 'chats/documents'
-UPLOAD_FOLDER_DOCUMENTS = 'documents'
-UPLOAD_FOLDER_IMAGES = 'images'
-THUMBNAIL_DIMENSIONS = (1125, 2436)  # iPhone X resolution
-DATA_UPLOAD_MAX_NUMBER_FIELDS = None
-
 
 # region -- geometry constants --
 GEOMETRY_DEFAULT_SRID = 4326

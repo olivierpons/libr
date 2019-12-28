@@ -1,5 +1,6 @@
 import os
 from os.path import dirname, basename
+from pathlib import Path
 
 import PIL
 from PIL import Image, ExifTags
@@ -9,6 +10,8 @@ from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 
 from libr import settings
+from libr.settings import THUMBNAIL_SUBDIRECTORY, MEDIA_ROOT, \
+    UPLOAD_FOLDER_IMAGES
 from .base import BaseFile
 
 
@@ -25,13 +28,9 @@ class ImageFile(BaseFile):
     # region - url_thumbnail() -
     def url_thumbnail(self, default=None):
         if self.file_field:
-            if self.file_field.name.startswith('./'):
-                relative_name = self.file_field.name[2:]
-            else:
-                relative_name = self.file_field.name
-            relative_name = f'{dirname(relative_name)}/' \
-                            f'{settings.THUMBNAIL_SUBDIRECTORY}/' \
-                            f'{basename(relative_name)}'
+            relative_name = self.full_upload_path.joinpath(
+                THUMBNAIL_SUBDIRECTORY, self.full_filename.name
+            ).relative_to(Path(settings.MEDIA_ROOT).resolve())
             return reverse_lazy('url_public', args=(relative_name,))
         if default:
             return static(default)
@@ -47,19 +46,20 @@ class ImageFile(BaseFile):
         img = img.resize((int(float(img.size[0]) * percent),
                           int(float(img.size[1]) * percent)),
                          PIL.Image.ANTIALIAS)
-        full_filename = self.os_full_filename()
-        path_thumbnail = f'{dirname(full_filename)}{os.sep}' \
-                         f'{settings.THUMBNAIL_SUBDIRECTORY}'
-        os.makedirs(path_thumbnail)
-        thumbnail_filename = f'{path_thumbnail}{os.sep}' \
-                             f'{basename(full_filename)}'
-        img.save(thumbnail_filename)
+
+        full_filename = Path(self.full_filename)
+        path_thumbnail = full_filename.parent.joinpath(THUMBNAIL_SUBDIRECTORY)
+        try:
+            os.makedirs(path_thumbnail)
+        except FileExistsError:
+            pass
+        img.save(path_thumbnail.joinpath(full_filename.name))
     # endregion - generate_thumbnail() -
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # after update, if image is rotated, make it "the right way":
-        img = Image.open(self.image_file)
+        img = Image.open(self.full_filename)
         try:
             # rotation img code
             for orientation in ExifTags.TAGS.keys():

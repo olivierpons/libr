@@ -1,9 +1,11 @@
 import os
 from abc import ABCMeta, abstractmethod
 from os.path import splitext, basename
+from pathlib import Path
 
 import magic
 from django.db import models
+from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from core.models.base import BaseModel
 from core.models.entity import Entity
 from core.utils import UidMixin
+from libr import settings
 
 
 class BaseFile(UidMixin, BaseModel):
@@ -18,14 +21,25 @@ class BaseFile(UidMixin, BaseModel):
 
     upload_directory = ''
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        # remove last char if it's a separator:
+        if cls.upload_directory.endswith(os.sep):
+            cls.upload_directory = cls.upload_directory[:-1]
+
     @abstractmethod
     @cached_property
     def file_field(self):
         pass
 
-    def os_full_filename(self, check=True):
-        name = os.path.join(settings.MEDIA_ROOT, str(self.file_field))
-        return name if not check or os.path.isfile(name) else None
+    @cached_property
+    def full_upload_path(self):
+        result = self.full_filename
+        return result.resolve().parent if result else None
+
+    @cached_property
+    def full_filename(self):
+        return Path(settings.MEDIA_ROOT, str(self.file_field)).resolve()
 
     def url(self, default=None):
         if self.file_field:
@@ -34,20 +48,13 @@ class BaseFile(UidMixin, BaseModel):
                                       if self.file_field.name.startswith('./')
                                       else self.file_field.name,))
         if default:
-            return staticfiles.static(default)
-        return staticfiles.static('img/no-image-yet.jpg')
-
-    @staticmethod
-    def relative_url(name, path=None):
-        retour = (path if path else '') + name
-        # Ex: "profiles/bea536a0/089c/a45b.jpg"
-        return retour.replace('-', '/')
+            return static(default)
+        return static('img/no-image-yet.jpg')
 
     # keep trace of who uploaded the file:
     creator = models.ForeignKey(Entity, on_delete=models.SET_NULL,
                                 blank=True, default=None, null=True, )
-    description = models.CharField(max_length=200,
-                                   blank=True, default=None, null=True, )
+    informations = models.TextField(default=None, null=True, blank=True)
     original_filename = models.CharField(max_length=200,
                                          blank=True, default=None, null=True, )
 
@@ -59,14 +66,14 @@ class BaseFile(UidMixin, BaseModel):
 
     # generate a filename dynamically:
     def generate_filename(self, filename):
-        # name like: "bea536a0-089c-a45b.pdf"
-        name = self.generate_uid(splitext(basename(filename))[1])
+        # name like: "[uid].[ext]" -> example: "bea536a0-089c-a45b.pdf"
+        name = self.generate_uid(text_to_append=splitext(basename(filename))[1])
         # final return result like: "profiles/bea536a0/089c/a45b.pdf":
-        return self.relative_url(name, self.upload_directory)
+        return os.path.join(self.upload_directory, name.replace('-', '/'))
 
     def file_detailed_description(self):
         mime = magic.Magic(mime=True)
-        name = self.os_full_filename()
+        name = self.full_filename
         if name is None:
             return None
         result = mime.from_file(name)
@@ -84,9 +91,9 @@ class BaseFile(UidMixin, BaseModel):
 
     def __str__(self):
         file_name = str(self.file_field or _("no file"))
-        description = self.description or _("No description")
+        informations = self.informations or _("No information")
         creator = _("creator: {}").format(str(self.creator or _("no creator")))
-        result = f'{self.pk} - {description} ({file_name}) / {creator}'
+        result = f'{self.pk} - {informations} ({file_name}) / {creator}'
         if self.date_v_end is None:
             return result
         return _("{} (expired: {})").format(

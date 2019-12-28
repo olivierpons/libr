@@ -1,18 +1,19 @@
 import glob
 import os
 from os import path
-from os.path import dirname
 from pathlib import Path
 
 import cv2
 import numpy
 from PIL import Image
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
-from skimage.metrics import structural_similarity
 
-from libr import settings
+from core.models.file.image import ImageFile
+from libr.settings import MEDIA_ROOT, UPLOAD_FOLDER_IMAGES
 
 
 class Command(BaseCommand):
@@ -20,17 +21,20 @@ class Command(BaseCommand):
            "convert them to jpg (maximum quality)"
 
     def add_arguments(self, parser):
-        default_folder_dst = path.join(settings.MEDIA_ROOT,
-                                       settings.UPLOAD_FOLDER_IMAGES)
+        default_folder_dst = UPLOAD_FOLDER_IMAGES
         parser.add_argument(
             '--continue-on-low-quality', type=int, default=1,
             help=_("If minimum quality not reached, still continue "
                    "(0=no, 1=yes), default no"))
         parser.add_argument(
+            '--creator-username', type=str, required=True,
+            help=_("Username to set as creator"))
+        parser.add_argument(
             '--folder-src', type=str, required=True, help=_(f"Folder source"))
         parser.add_argument(
             '--folder-dst', type=str, default=default_folder_dst,
-            help=_(f"Folder destination (default: {default_folder_dst})"))
+            help=_(f"Folder destination *relative* to project"
+                   f" (default: {default_folder_dst})"))
         parser.add_argument(
             '--max-conversions', type=int, default=0,
             help=_("Max. conversions (default=0 = all files found)"))
@@ -40,7 +44,7 @@ class Command(BaseCommand):
                    "(otherwise quality is automatically increased) "
                    "(default=30)"))
         parser.add_argument(
-            '--override-existing', type=bool, default=True,
+            '--override-existing', type=int, required=True,
             help=f'If converted image already exists, override it '
                  f'(0=no, 1=yes, default:0).')
         parser.add_argument(
@@ -58,6 +62,20 @@ class Command(BaseCommand):
         def raise_error(err):
             raise CommandError(_(err))
 
+        # region - creator username -
+        creator_username = options['creator_username']
+        try:
+            creator = User.objects.get(username=creator_username).person
+        except User.DoesNotExist:
+            raise CommandError(f"User \"{creator_username}\" not found.")
+        # endregion - creator username -
+        # region - continue-on-low-quality (0=no, 1=yes), default no -
+        try:
+            tmp = int(options.get('continue_on_low_quality', 0))
+            continue_on_low_quality = bool(tmp)
+        except ValueError:
+            raise CommandError(f"continue-on-low-quality option must be 0 or 1")
+        # endregion - continue-on-low-quality (0=no, 1=yes), default no -
         # region - folder source -
         folder_src = Path(options.get('folder_src', '')).absolute()
         if not folder_src.exists():
@@ -67,26 +85,31 @@ class Command(BaseCommand):
         # endregion - folder source -
         # region - folder destination -
         try:
-            folder_dst = Path(options['folder_dst']).absolute()
+            folder_dst = Path(options['folder_dst'])
         except KeyError:
             raise CommandError(_(f"Folder destination is mandatory."))
-        if not folder_dst.exists():
+        folder_dst_full = Path(MEDIA_ROOT, folder_dst).absolute()
+        if not folder_dst_full.exists():
             raise_error(_(
                 f"Folder destination \"{folder_dst}\" doesn't exist."))
-        if not folder_dst.is_dir():
+        if not folder_dst_full.is_dir():
             raise_error(_(
                 f"Folder destination \"{folder_dst}\" is not a folder."))
+        if folder_dst.is_absolute():
+            raise_error(_(
+                f"Folder destination \"{folder_dst}\" must be *relative*."))
         # endregion - folder destination -
         # region - out option (0=silent, 1=verbose) -
+
         def out_silent(msg):
             pass
 
-        def out_verbose(message, **kwargs):
+        def out_verbose(msg, **kwargs):
             time = now().strftime('%Y/%m/%d %H:%M:%S')
-            if not isinstance(message, list):
-                messages = [message, ]
+            if not isinstance(msg, list):
+                messages = [msg, ]
             else:
-                messages = message
+                messages = msg
             str_time = f'> {time} : '
             str_space = None
             for msg in messages:
@@ -115,20 +138,13 @@ class Command(BaseCommand):
         except ValueError:
             out = out_verbose
         # endregion - out option (0=silent, 1=verbose) -
-        # region - override existing files (0=no, 1=yes), default: 0=no -
+        # region - override existing files (0=no, 1=yes), default: 0 -
         try:
             override_existing = int(options.get('override_existing', 0))
             override_existing = override_existing != 0
         except ValueError:
             raise CommandError(f"Override existing option must be 0 or 1.")
-        # endregion - override existing files (0=no, 1=yes), default: 0=no -
-        # region - continue-on-low-quality (0=no, 1=yes), default no -
-        try:
-            tmp = int(options.get('continue_on_low_quality', 0))
-            continue_on_low_quality = bool(tmp)
-        except ValueError:
-            raise CommandError(f"continue-on-low-quality option must be 0 or 1")
-        # endregion - continue-on-low-quality (0=no, 1=yes), default no -
+        # endregion - override existing files (0=no, 1=yes), default: 0 -
         # region - quality option (1..100), default: 95 -
         try:
             quality_ref = int(options.get('quality', -1))
@@ -164,6 +180,7 @@ class Command(BaseCommand):
             f"Quality: {quality_ref}.",
             f"Folder source: \"{folder_src}\".",
             f"Folder destination: \"{folder_dst}\".",
+            f"Folder destination full: \"{folder_dst_full}\".",
             f"Progressive: \"{str(progressive)}\".",
             f"Maximum acceptable Mean Squared Error: \"{str(mse_max)}\".",
             f"Continue on low quality: \"{str(continue_on_low_quality)}\"."]
@@ -192,28 +209,28 @@ class Command(BaseCommand):
             total_len = max_conversions
         else:
             out(f"{total_len} file(s). Processing all files", is_success=True)
+
+        dst_absolute = Path(MEDIA_ROOT).absolute()
+
         for idx, filename_src in enumerate(files_grabbed):
 
             if 0 < max_conversions == idx:
                 out(f"All files processed. Stopping.", is_success=True)
                 break
 
-            out(f"Processing file {idx+1}/{total_len} ", is_success=True)
-
-            filename_dst = path.join(
-                folder_dst,
+            out(f"Processing file {idx+1}/{total_len}...")
+            filename_dst = Path(
+                folder_dst_full,
                 Path(filename_src).parent.relative_to(folder_src),
                 path.basename(path.splitext(filename_src)[0])+'.jpg')
             try:
                 os.makedirs(Path(filename_dst).parent)
             except FileExistsError:
                 pass
-            out(f"Converting \"{filename_src}\" to \"{filename_dst}\" ...")
+            out([f"Converting "
+                 f"\"{filename_dst.relative_to(folder_dst_full)}\"..."])
 
-            img = Image.open(filename_src)
-            rgb_img = img.convert('RGB')
-            quality = quality_ref
-            if path.isfile(filename_dst):
+            if filename_dst.is_file():
                 message = _("File already exists. ")
                 if not override_existing:
                     out(message + f"Override option off, skipping.",
@@ -222,12 +239,16 @@ class Command(BaseCommand):
                 out(message + f"Override option on, overriding.",
                     is_warning=True)
 
+            image = Image.open(filename_src)
+            rgb_img = image.convert('RGB')
+            quality = quality_ref
+
             img_src = cv2.imread(filename_src)
 
             while True:
-                rgb_img.save(filename_dst, quality=quality,
+                rgb_img.save(str(filename_dst), quality=quality,
                              progressive=progressive)
-                img_dst = cv2.imread(filename_dst)
+                img_dst = cv2.imread(str(filename_dst))
 
                 # Compute 'Mean Squared Error': it's the sum of the squared
                 # difference between the two images.
@@ -238,6 +259,7 @@ class Command(BaseCommand):
                 mse /= float(img_src.shape[0] * img_src.shape[1])
 
                 # # Compute  structural similarity:
+                # from skimage.metrics import structural_similarity
                 # s_s = structural_similarity(img_src, img_dst,
                 #                             multichannel=True)
                 # result = "MSE: {:.2f}, SSIM: {:.2f}".format(mse, s_s)
@@ -263,11 +285,31 @@ class Command(BaseCommand):
                     quality = min(quality, 100)
                     out(message + f" Increasing quality to {quality}")
                 else:
-                    out(result)
-                    out(f'Conversion done.', is_success=True)
+                    out(f"{result}, it's acceptable. Conversion done.",
+                        is_success=True)
+                    filename_rel = str(filename_dst.relative_to(dst_absolute))
+                    try:
+                        image = ImageFile.objects.filter(
+                            Q(image_file=str(filename_dst)) |
+                            Q(image_file=filename_rel))
+                        if len(image) > 1:
+                            for i in range(1, len(image)):
+                                image[i].delete()
+                        elif len(image) == 1:
+                            image = image[0]
+                        else:
+                            image = ImageFile(image_file=filename_rel)
+                    except ImageFile.DoesNotExist:
+                        image = ImageFile(image_file=filename_rel)
+
+                    image.original_filename = str(filename_src)
+                    image.creator = creator
+                    image.informations = f"Mean Squared Error: {mse:.2f}"
+                    image.save()
                     break
-            out(f"File \"{filename_dst}\" processed. "
-                f"({(idx+1)*100/total_len:0.4}% done)",
-                is_success=True)
+            out("File \"{}\" processed. ({:0.4}% done)".format(
+                filename_dst.relative_to(dst_absolute),
+                (idx+1)*100/total_len
+            ), is_success=True)
 
         out(f"Job finished.", is_success=True)
