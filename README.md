@@ -1,7 +1,7 @@
 # libr
 Community-driven use of scanned books:
 - manually text extraction
-- text extration validation
+- text extraction validation
 
 Everything is community-driven.
 
