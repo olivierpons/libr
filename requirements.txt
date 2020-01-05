@@ -8,6 +8,7 @@ mixer>=6.1.3
 opencv-python
 psycopg2>=2.8.4
 python-dateutil>=2.8.1
+# install python-magic-bin under Windows if this fails:
 python-magic>=0.4.15
 pytz>=2019.3
 requests
@@ -15,3 +16,4 @@ scikit-image
 sqlparse>=0.3.0
 unidecode>=1.1.1
 uritemplate
+phonenumbers
