@@ -1,0 +1,20 @@
+numpy
+Django
+Pillow
+django-cors-headers
+django-crontab
+djangorestframework
+fcm-django
+mixer
+opencv-python
+psycopg2
+python-dateutil
+# install python-magic-bin under Windows if this fails:
+python-magic
+pytz
+requests
+scikit-image
+sqlparse
+unidecode
+uritemplate
+phonenumbers
