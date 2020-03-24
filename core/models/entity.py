@@ -70,7 +70,7 @@ class EntityPhone(BaseModel):
     comment = models.TextField(default=None, blank=True, null=True)
 
     def __str__(self):
-        result = f'{str(self.entity)} -> {str(self.phone)} ' \
+        result = f'{str(self.entity)} -> {str(self.text)} ' \
                  f'({str(self.get_type_display())})'
         if self.comment:  # add the comment
             return f'{result} - {str(self.comment)}'

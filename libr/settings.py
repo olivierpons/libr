@@ -1,5 +1,6 @@
 import os
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse_lazy
 from ast import literal_eval
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -60,7 +61,6 @@ THUMBNAIL_DIMENSIONS = settings['THUMBNAIL_DIMENSIONS']
 # Application definition
 
 INSTALLED_APPS = [
-    'app.apps.AppConfig',
     'core.apps.CoreConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -68,11 +68,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'app.apps.AppConfig', short='app' otherwise PyCharm = problem with paths:
+    'app',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -100,10 +103,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'libr.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/dev/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -114,12 +113,12 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
-DJANGO_AUTH_VALIDATION = 'django.contrib.auth.password_validation'
+PASSWORD_VALIDATION = 'django.contrib.auth.password_validation'
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': f'{DJANGO_AUTH_VALIDATION}.UserAttributeSimilarityValidator', },
-    {'NAME': f'{DJANGO_AUTH_VALIDATION}.MinimumLengthValidator', },
-    {'NAME': f'{DJANGO_AUTH_VALIDATION}.CommonPasswordValidator', },
-    {'NAME': f'{DJANGO_AUTH_VALIDATION}.NumericPasswordValidator', },
+    {'NAME': f'{PASSWORD_VALIDATION}.UserAttributeSimilarityValidator',},
+    {'NAME': f'{PASSWORD_VALIDATION}.MinimumLengthValidator',},
+    {'NAME': f'{PASSWORD_VALIDATION}.CommonPasswordValidator',},
+    {'NAME': f'{PASSWORD_VALIDATION}.NumericPasswordValidator',},
 ]
 
 
@@ -139,3 +138,9 @@ PHONE_ACCEPTED_FORMAT = 'FR'
 # endregion
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+)
+
+LOGIN_URL = reverse_lazy('login')
+LOGIN_REDIRECT_URL = reverse_lazy('app_index')

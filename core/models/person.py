@@ -28,6 +28,9 @@ class Person(Entity):
                                on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True, default=None)
 
+    def as_person_typed(self):
+        return self.persontyped if hasattr(self, 'persontyped') else None
+
     def simple_desc(self, email=True, active=False, pk=False):
         u = self.user
         if u is None:

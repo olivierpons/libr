@@ -30,8 +30,8 @@ class ProfileView(LoginRequiredMixin, PersonTypedMixin, generic.TemplateView):
                          })
             result['phone_formset'] = PhoneFormset(
                 prefix='phone',
-                initial=[{'type': e_p.phone_type,
-                          'number': e_p.phone.phone_number} for e_p in
+                initial=[{'type': e_p.type,
+                          'text': e_p.phone.text} for e_p in
                          EntityPhone.objects.filter(entity=self.persontyped)])
             result['address_formset'] = AddressFormset(
                 prefix='address',
@@ -60,7 +60,7 @@ class ProfileView(LoginRequiredMixin, PersonTypedMixin, generic.TemplateView):
 
     @staticmethod
     def get_success_url():
-        return reverse('index')
+        return reverse('app_index')
 
     def form_invalid(self, profile_form, phones_formset, addresses_formset):
         # Taken from Django source code:
@@ -82,14 +82,13 @@ class ProfileView(LoginRequiredMixin, PersonTypedMixin, generic.TemplateView):
         with transaction.atomic():
             EntityPhone.objects.filter(entity=person).delete()
             for phone_form in phones_formset:
-                number = phone_form.cleaned_data['number']
-                phone_type = int(phone_form.cleaned_data['type'])
-                if not (number and phone_type and
-                        phone_type in EntityPhone.PHONE_TYPES):
+                text = phone_form.cleaned_data['text']
+                p_type = int(phone_form.cleaned_data['type'])
+                if not (text and p_type and p_type in EntityPhone.Type.values):
                     continue
-                phone = Phone.objects.create(phone_number=number)
-                EntityPhone.objects.create(entity=person, phone_type=phone_type,
-                                           phone=phone, )
+                EntityPhone.objects.create(
+                    entity=person, type=p_type,
+                    phone=Phone.objects.create(text=text), )
 
         # addresses
         with transaction.atomic():

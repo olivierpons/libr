@@ -13,20 +13,20 @@ class PhoneForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['type'] = forms.ChoiceField(
-            choices=EntityPhone.Type,
+            choices=EntityPhone.Type.choices,
             widget=forms.Select(attrs={'class': 'form-control col-sm-3'}))
-        self.fields['number'] = forms.CharField(
+        self.fields['text'] = forms.CharField(
             max_length=200,
             widget=forms.TextInput(attrs={'class': 'form-control'}))
 
-    def clean_number(self):
-        phone = self.cleaned_data['number']
-        if phone:
+    def clean_text(self):
+        text = self.cleaned_data['text']
+        if text:
             try:
-                phone = Phone.standardize(phone)
+                text = Phone.standardize(text)
             except NumberParseException:
-                self.add_error('number', _("Phone number isn't a known format"))
-        return phone
+                self.add_error('text', _("Phone number isn't a known format"))
+        return text
 
 
 PhoneFormset = formset_factory(PhoneForm, extra=1)

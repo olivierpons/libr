@@ -1,0 +1,415 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8" />
+    {# minimum = edge, no IE anymore: #}
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <![endif]-->
+    {# - favicon - #}
+    {#    <link rel="shortcut icon" href="{% static 'img/ico/original.png' %}">#}
+    {# <!-- Tell the browser to be responsive to screen width --> #}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# <!-- Font Awesome --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/fontawesome-free/css/all.min.css' %}">
+    {# <!-- Ionicons --> #}
+    <link rel="stylesheet" href="{% static 'vendors/ionicons-2.0.1/ionicons.min.css' %}">
+    {# <!-- Tempusdominus Bootstrap 4 --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
+    {# <!-- iCheck --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    {# <!-- JQVMap --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/jqvmap/jqvmap.min.css' %}">
+    {# <!-- Theme style --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/dist/css/adminlte.min.css' %}">
+    {# <!-- overlayScrollbars --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
+    {# <!-- Daterange picker --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/daterangepicker/daterangepicker.css' %}">
+    {# <!-- summernote --> #}
+    <link rel="stylesheet" href="{% static 'vendors/admin-lte/plugins/summernote/summernote-bs4.css' %}">
+    {# <!-- Google Font: Source Sans Pro --> #}
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    {# <!-- jQuery --> #}
+    <script src="{% static 'vendors/admin-lte/plugins/jquery/jquery.min.js' %}"></script>
+    {# <!-- Bootstrap 4 --> #}
+    <script src="{% static 'vendors/admin-lte/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {# <!-- AdminLTE App --> #}
+    <script src="{% static 'vendors/admin-lte/dist/js/adminlte.min.js' %}"></script>
+
+    {# Core plugin JavaScript- #}
+    <script src="{% static 'vendors/jquery-easing/1.4.1/jquery.easing.min.js' %}"></script>
+    <script src="{% static 'vendors/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'vendors/popper.min.js' %}"></script>
+
+    <script src="{% static 'js/osm-widget.js' %}"></script>
+    <script src="{% static 'js/django-formset.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <link href="{% static 'css/wizard.css' %}" type="text/css" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" type="text/css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <title>{% block title %}{% trans 'Anamnesis' %}{% endblock %}</title>
+</head>
+{% block body %}
+
+    <body class="hold-transition sidebar-mini">
+    <!-- Site wrapper -->
+    <div class="wrapper">
+        {% block navbar %}
+            {# .navbar #}
+            <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+                {# Left navbar links #}
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="pushmenu" href="#">
+                            <i class="fas fa-bars"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item d-none d-sm-inline-block">
+                        <a href="{% url 'app_index' %}" class="nav-link">
+                            {% trans "Home" %}
+                        </a>
+                    </li>
+                    {# <li class="nav-item d-none d-sm-inline-block">#}
+                    {#     <a href="#" class="nav-link">Contact</a>#}
+                    {# </li>#}
+                </ul>
+
+                {# Search form #}
+                <form class="form-inline ml-3">
+                    <div class="input-group input-group-sm">
+                        <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-navbar" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {# Right navbar links #}
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#">
+                            <i class="fas fa-th-large"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {# /.navbar #}
+        {% endblock %}
+
+        {# Main Sidebar Container #}
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- Brand Logo -->
+            <a href="{% url 'app_index' %}" class="brand-link">
+                <img src="{% static 'img/anamnesis-logo.png' %}"
+                     title="{% trans "Anamnesis" %}"
+                     alt="{% trans "Anamnesis" %}"
+                     class="brand-image img-circle elevation-3"
+                     style="opacity: .8">
+                <span class="brand-text font-weight-light">
+                    {% trans "Anamnesis" %}
+                </span>
+            </a>
+
+            {# <!-- Sidebar --> #}
+            <div class="sidebar">
+                {% if user.is_authenticated %}
+                    {# <!-- Sidebar user (optional) --> #}
+                    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                        <div class="image">
+                            <img src="{{ user.person.avatar_url_thumbnail }}"
+                                 class="img-circle elevation-2"
+                                 title="{{ user.person.user_informations_simple }}"
+                                 alt="{{ user.person.user_informations_simple }}"
+                                 style="background-color: white">
+                        </div>
+                        <div class="info">
+                            <a href="#" class="d-block">
+                                {{ user.person.user_informations_simple }}
+                            </a>
+                        </div>
+                    </div>
+
+                    {# <!-- Sidebar Menu --> #}
+                    <nav class="mt-2">
+                        <ul class="nav nav-pills nav-sidebar flex-column"
+                            data-widget="treeview" role="menu" data-accordion="false">
+                            <li class="nav-item">
+                                <a href="{% url 'profile' %}" class="nav-link">
+                                    <i class="nav-icon fas fa-user-alt"></i>
+                                    <p>
+                                        {% trans "Edit profile" %}
+                                    </p>
+                                </a>
+                            </li>
+                            {# Add icons to the links using the .nav-icon class #}
+                            {# with font-awesome or any other icon font library #}
+                            <li class="nav-item has-treeview">
+                                <a href="#" class="nav-link">
+                                    {# <i class="nav-icon fas fa-tachometer-alt"></i>#}
+                                    <i class="nav-icon fas fa-diagnoses"></i>
+                                    <p>
+                                        {% trans 'Surveys' %}
+                                        <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    {% if person_typed.is_patient %}
+                                        <li class="nav-item">
+                                            <a href="" class="nav-link">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                <i class="far fa-edit nav-icon"></i>
+                                                <p>{% trans "Current survey" %}</p>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    <li class="nav-item">
+                                        <a href="" class="nav-link">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <i class="fas fa-list nav-icon"></i>
+                                            <p>{% trans "All surveys" %}</p>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'logout' %}" class="nav-link">
+                                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                                    <p>
+                                        {% trans "Logout" %}
+                                    </p>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                {% endif %}
+                <!-- /.sidebar-menu -->
+            </div>
+            <!-- /.sidebar -->
+        </aside>
+
+        {# Content Wrapper. Contains page content #}
+        <div class="content-wrapper">
+            {# Content Header (Page header) #}
+            {% block content-header-wrapper %}
+                <section class="content-header">
+                    <div class="container-fluid">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                {% block content-header %}
+                                    {% if user.is_authenticated %}
+                                        <h1>
+                                            {% trans "Welcome" %}
+                                            {{ user.person.user_informations_simple }}
+                                        </h1>
+                                    {% else %}
+                                        <img id="logo" src="{% static 'img/anamnesis-logo.png' %}"
+                                             class="table-avatar"
+                                             title="{% trans 'Anamnesis logo' %}"
+                                             alt="{% trans 'Anamnesis logo' %}"
+                                             style="max-width: 100px; margin-right: 20px"/>
+                                        {% trans "Anamnesis" %}
+                                        <img id="logo" src="{% static 'img/doctor.jpg' %}"
+                                             class="table-avatar"
+                                             title="{% trans 'Anamnesis logo' %}"
+                                             alt="{% trans 'Anamnesis logo' %}"
+                                             style="margin-left: 20px; max-width: 148px; border-radius: 10%;"/>
+                                    {% endif %}
+                                {% endblock %}
+                            </div>
+                            <div class="col-sm-6">
+                                <ol class="breadcrumb float-sm-right">
+                                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                    <li class="breadcrumb-item active">Projects</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div> {# /.container-fluid #}
+                </section>
+            {% endblock content-header-wrapper %}
+            {% block content-wrapper %}
+                <section class="content">
+
+                    <div class="container-fluid">
+                        {% block content %}
+                            <!-- Default box -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Projects</h3>
+
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool"
+                                                data-card-widget="collapse"
+                                                data-toggle="tooltip"
+                                                title="Collapse">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-tool"
+                                                data-card-widget="remove"
+                                                data-toggle="tooltip"
+                                                title="Remove">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-striped projects">
+                                        <thead>
+                                        <tr>
+                                            <th style="width: 1%">
+                                                #
+                                            </th>
+                                            <th style="width: 20%">
+                                                Project Name
+                                            </th>
+                                            <th style="width: 30%">
+                                                Team Members
+                                            </th>
+                                            <th>
+                                                Project Progress
+                                            </th>
+                                            <th style="width: 8%" class="text-center">
+                                                Status
+                                            </th>
+                                            <th style="width: 20%">
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                #
+                                            </td>
+                                            <td>
+                                                <a>
+                                                    AdminLTE v3
+                                                </a>
+                                                <br/>
+                                                <small>
+                                                    Created 01.01.2019
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <ul class="list-inline">
+                                                    <li class="list-inline-item">
+                                                        <img alt="Avatar" class="table-avatar" src="{% static 'img/icon-unknown.png' %}">
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <img alt="Avatar" class="table-avatar" src="{% static 'img/icon-unknown.png' %}">
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <img alt="Avatar" class="table-avatar" src="{% static 'img/icon-unknown.png' %}">
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <img alt="Avatar" class="table-avatar" src="{% static 'img/icon-unknown.png' %}">
+                                                    </li>
+                                                </ul>
+                                            </td>
+                                            <td class="project_progress">
+                                                <div class="progress progress-sm">
+                                                    <div class="progress-bar bg-green" role="progressbar"
+                                                         aria-volumenow="57" aria-volumemin="0" aria-volumemax="100"
+                                                         style="width: 57%">
+                                                    </div>
+                                                </div>
+                                                <small>
+                                                    57% Complete
+                                                </small>
+                                            </td>
+                                            <td class="project-state">
+                                                <span class="badge badge-success">Success</span>
+                                            </td>
+                                            <td class="project-actions text-right">
+                                                <a class="btn btn-primary btn-sm" href="#">
+                                                    <i class="fas fa-folder">
+                                                    </i>
+                                                    View
+                                                </a>
+                                                <a class="btn btn-info btn-sm" href="#">
+                                                    <i class="fas fa-pencil-alt">
+                                                    </i>
+                                                    Edit
+                                                </a>
+                                                <a class="btn btn-danger btn-sm" href="#">
+                                                    <i class="fas fa-trash">
+                                                    </i>
+                                                    Delete
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.card-body -->
+                            </div>
+                            <!-- /.card -->
+                        {% endblock %}
+                    </div>
+
+                </section>
+            {% endblock content-wrapper %}
+        </div>
+        <!-- /.content-wrapper -->
+
+        <footer class="main-footer">
+            <div class="float-right d-none d-sm-block">
+                <b>Version</b> 1.0
+            </div>
+            <strong>Copyright &copy; 2019-{% now 'Y' %}
+                <a href="https://hqf.fr">
+                    HQF Development - Python / Django Expert
+                </a>.
+            </strong> {% trans 'All rights reserved.' %}
+        </footer>
+
+        <!-- Control Sidebar -->
+        <aside class="control-sidebar control-sidebar-dark">
+            <!-- Control sidebar content goes here -->
+        </aside>
+        <!-- /.control-sidebar -->
+    </div>
+    <!-- ./wrapper -->
+    </body>
+{% endblock body %}
+{% block message %}
+
+    {% if messages %}
+        <div class="modal fade" id="modal-messages">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            {% trans "Message" %}
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            {% trans "Close" %}
+                        </button>
+                        {# <button type="button" class="btn btn-primary">Save changes</button>#}
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <script>$(()=>{
+            $('#modal-messages').modal('show');
+        });</script>
+    {% endif %}
+
+{% endblock %}
+</html>

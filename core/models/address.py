@@ -43,17 +43,8 @@ class Address(BaseModel):
         # else:
         #     coords = '(?,?)'
         return f'{self.str_clean(self.place_id)} ' \
-               f'{_("(found)") if self.way else _("(empty)")} / ' \
                f'{self.str_clean(self.summary, max_len=70)} / ' \
-               f'{self.str_clean(self.details, max_len=30)} / ' \
-               f'{self.str_clean(self.way, max_len=30)}'.strip()
-
-    def save(self, *args, **kwargs):
-        if self.way and self.lat is None and self.lat is None:
-            center_point = self.way.centroid
-            self.lng, self.lat = center_point.coords
-
-        super().save(*args, **kwargs)
+               f'{self.str_clean(self.details, max_len=30)}'
 
     class Meta:
         verbose_name = _("Address")
