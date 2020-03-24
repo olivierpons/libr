@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="row">
+            <div class="col-md-3 col-sm-6 col-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-user-alt"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">
+                            <a href="{% url 'profile' %}">
+                                <button type="button"
+                                        class="btn btn-block btn-default btn-lg">
+                                    {% trans "Edit my profile" %}
+                                </button>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if person_typed.is_patient %}
+            <div class="row">
+                <div class="col-md-3 col-sm-6 col-12">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-teal"> {# bg-success #}
+                            <i class="fas fa-book-medical"></i>
+                        </span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">
+                                <a href="{% url 'survey_draft' %}">
+                                    <button type="button"
+                                            class="btn btn-block btn-default btn-lg">
+                                        {% trans "Current survey" %}
+                                    </button>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-6 col-12">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-teal"> {# bg-success #}
+                            <i class="fas fa-hat-wizard"></i>
+                        </span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">
+                                <a href="{% url 'wz_survey' %}">
+                                    <button type="button"
+                                            class="btn btn-block btn-default btn-lg">
+                                        {% trans "Wizard current survey" %}
+                                    </button>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if person_typed.has_old_surveys %}
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-teal">
+                                <i class="fas fa-list"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">
+                                    <button type="button"
+                                            class="btn btn-block btn-default btn-lg">
+                                        {% trans "Old surveys" %}
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+    {% else %}
+
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-4">
+                <!-- Horizontal Form -->
+                <div class="card card-info">
+
+                    <!-- form start -->
+                    <form class="form-horizontal">
+                        {# <div class="card-header"></div> #}
+                        <div class="card-body">
+                            <h5>{% trans "You are not logged in." %}</h5>
+                            <h6>{% trans "You can choose between:" %}</h6>
+                            <p class="mb-1">
+                                <a href="{% url 'login' %}"
+                                   class="btn btn-block btn-outline-secondary">
+                                    {% trans "Login" %}
+                                </a>
+                            </p>
+                            <p class="mb-0">
+                                <a href="{% url 'register' %}"
+                                   class="btn btn-block btn-outline-primary">
+                                    {% trans "Register" %}
+                                </a>
+                            </p>
+                        </div> {# /.card-body #}
+
+                        {# <div class="card-footer"></div> #}
+                        {# /.card-footer #}
+                    </form>
+                </div>
+                <!-- /.card -->
+
+            </div>
+            <!--/.col (left) -->
+            <!-- right column -->
+            <div class="col-md-6">
+                <!-- /.card -->
+            </div>
+            <!--/.col (right) -->
+        </div>
+
+    {% endif %}
+
+{% endblock %}

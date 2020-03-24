@@ -11,7 +11,7 @@ from django.utils.timezone import now
 
 from core.models.file.image import ImageFile
 from libr import settings
-from libr.settings import MEDIA_ROOT, UPLOAD_FOLDER_IMAGES
+from libr.settings import UPLOAD_FOLDER_IMAGES
 
 
 class Command(BaseCommand):

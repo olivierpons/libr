@@ -1,13 +1,14 @@
 import copy
 
+from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import AdminSite
 
 from app.admin.file import ImageFileAdmin
 from app.models.book.page import BookPage
 from app.models.book.paragraph import BookParagraph
+from app.models.person_typed import PersonTyped
 from core.models.activity import Activity
-from core.models.activity_type import ActivityType
 from core.models.address import Address
 from core.models.address_type import AddressType
 from core.models.chat.base import Chat, ChatPerson
@@ -20,10 +21,8 @@ from core.models.file.document import DocumentFile
 from core.models.file.image import ImageFile
 from core.models.geo_point import GeoPoint
 from core.models.link_type import LinkType
-from core.models.person import PersonConfirmation, Person, \
-    PersonProfession
+from core.models.person import PersonConfirmation, PersonProfession
 from core.models.phone import Phone
-from core.models.phone_type import PhoneType
 from core.models.profession import Profession
 from core.models.role import Role
 
@@ -71,6 +70,12 @@ class MyAdminSite(AdminSite):
 # endregion - MyAdminSite -
 
 
+class PersonTypedAdmin(admin.ModelAdmin):
+    list_display = ('person_type', 'objects', 'user', 'avatar', 'description')
+    list_display_links = list_display
+    raw_id_fields = ('avatar', )
+
+
 my_admin_site = MyAdminSite(name='my_admin')
 
 # region - app models -
@@ -81,7 +86,6 @@ my_admin_site.register(BookParagraph)
 
 # region - core models -
 my_admin_site.register(Activity)
-my_admin_site.register(ActivityType)
 my_admin_site.register(Address)
 my_admin_site.register(AddressType)
 my_admin_site.register(Chat)
@@ -100,10 +104,9 @@ my_admin_site.register(ImageFile, ImageFileAdmin)
 my_admin_site.register(GeoPoint)
 my_admin_site.register(LinkType)
 my_admin_site.register(PersonConfirmation)
-my_admin_site.register(Person)
+my_admin_site.register(PersonTyped, PersonTypedAdmin)
 my_admin_site.register(PersonProfession)
 my_admin_site.register(Phone)
-my_admin_site.register(PhoneType)
 my_admin_site.register(Profession)
 my_admin_site.register(Role)
 # endregion - core models -

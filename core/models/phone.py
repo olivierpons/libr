@@ -6,7 +6,7 @@ from libr.settings import PHONE_ACCEPTED_FORMAT
 
 
 class Phone(BaseModel):
-    phone_number = models.TextField(blank=False, null=False)
+    text = models.TextField(blank=False, null=False)
 
     @staticmethod
     def standardize(phone_number):
@@ -15,9 +15,9 @@ class Phone(BaseModel):
             phonenumbers.PhoneNumberFormat.INTERNATIONAL)
 
     def save(self, *args, **kwargs):
-        if self.phone_number is not None:
-            self.phone_number = self.standardize(self.phone_number)
+        if self.text is not None:
+            self.text = self.standardize(self.text)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.phone_number}'
+        return f'{self.text}'
