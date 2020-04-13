@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <![endif]-->
     {# - favicon - #}
-    {#    <link rel="shortcut icon" href="{% static 'img/ico/original.png' %}">#}
+    <link rel="shortcut icon" href="{% static 'img/books.png' %}">
     {# <!-- Tell the browser to be responsive to screen width --> #}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {# <!-- Font Awesome --> #}
@@ -43,14 +43,14 @@
     <script src="{% static 'vendors/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
     <script src="{% static 'vendors/popper.min.js' %}"></script>
 
-    <script src="{% static 'js/osm-widget.js' %}"></script>
+    {# <script src="{% static 'js/osm-widget.js' %}"></script> #}
     <script src="{% static 'js/django-formset.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 
-    <link href="{% static 'css/wizard.css' %}" type="text/css" rel="stylesheet">
-    <link href="{% static 'css/main.css' %}" type="text/css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <title>{% block title %}{% trans 'Anamnesis' %}{% endblock %}</title>
+    {# <link href="{% static 'css/wizard.css' %}" type="text/css" rel="stylesheet"> #}
+    {# <link href="{% static 'css/main.css' %}" type="text/css" rel="stylesheet"> #}
+    {# <link rel="stylesheet" href="{% static 'css/main.css' %}">#}
+    <title>{% block title %}{% trans "Libr" %}{% endblock %}</title>
 </head>
 {% block body %}
 
@@ -105,7 +105,7 @@
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
             <a href="{% url 'app_index' %}" class="brand-link">
-                <img src="{% static 'img/anamnesis-logo.png' %}"
+                <img src="{% static 'img/books.png' %}"
                      title="{% trans "Anamnesis" %}"
                      alt="{% trans "Anamnesis" %}"
                      class="brand-image img-circle elevation-3"
