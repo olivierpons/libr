@@ -26,5 +26,5 @@ urlpatterns = [
 
 urlpatterns += i18n_patterns(
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-    path('', IndexView.as_view(), name='app_index'),
+    path('', IndexView.as_view(), name='app_home'),
 )

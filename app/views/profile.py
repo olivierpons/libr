@@ -60,7 +60,7 @@ class ProfileView(LoginRequiredMixin, PersonTypedMixin, generic.TemplateView):
 
     @staticmethod
     def get_success_url():
-        return reverse('app_index')
+        return reverse('app_home')
 
     def form_invalid(self, profile_form, phones_formset, addresses_formset):
         # Taken from Django source code:
