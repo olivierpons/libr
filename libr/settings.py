@@ -316,7 +316,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
-LOGIN_URL = reverse_lazy('auth_login')
+LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('app_home')
 HIJACK_LOGIN_REDIRECT_URL = reverse_lazy('app_home')
 HIJACK_LOGOUT_REDIRECT_URL = reverse_lazy('app_home')

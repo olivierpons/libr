@@ -7,14 +7,14 @@
         <div class="card">
             <div class="card-body register-card-body">
                 <div class="register-logo">
-                    <img id="logo" src="{% static 'img/anamnesis-logo.png' %}"
+                    <img id="logo" src="{% static 'img/books.png' %}"
                          class="table-avatar"
-                         title="{% trans 'Anamnesis logo' %}"
-                         alt="{% trans 'Anamnesis logo' %}"
+                         title="{% trans "Books" %}"
+                         alt="{% trans "Books" %}"
                          style="width: 30%; margin-right: 20px"/>
 
                     <a href="{% url 'app_home' %}">
-                        <b>{% trans 'Anamnesis' %}</b>
+                        <b>{% trans "Libr" %}</b>
                     </a>
                 </div>
             </div>
@@ -74,24 +74,6 @@
                             )
                         });
                     });</script>
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="form-group">
-                                <div class="custom-control custom-radio">
-                                    <input class="custom-control-input" type="radio" id="a-doctor" name="i-am-doctor">
-                                    <label for="a-doctor" class="custom-control-label">
-                                        {% trans "I am a doctor" %}
-                                    </label>
-                                </div>
-                                <div class="custom-control custom-radio">
-                                    <input class="custom-control-input" type="radio" id="not-a-doctor" name="i-am-doctor" checked="">
-                                    <label for="not-a-doctor" class="custom-control-label">
-                                        {% trans "I am a patient" %}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="row">
                         <div class="col-8">
                             <div class="icheck-primary">

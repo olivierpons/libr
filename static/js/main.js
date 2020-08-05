@@ -1,5 +1,5 @@
 $(()=> {
-    "use strict";
+    'use strict';
 
     /* Focus the first element with attribute 'focused': */
     let $to_be_focused = $('[focused]');

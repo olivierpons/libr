@@ -47,6 +47,12 @@
     <script src="{% static 'js/django-formset.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 
+    {# jQuery Cropper: https://github.com/fengyuanchen/cropperjs #}
+    <link  href="{% static 'js/cropper/cropper.min.css' %}" rel="stylesheet">
+    <script src="{% static 'js/cropper/cropper.min.js' %}"></script>
+{#    <script src="{% static 'js/cropper/cropper.js' %}"></script>#}
+    <script src="{% static 'js/main-cropper.js' %}"></script>
+
     {# <link href="{% static 'css/wizard.css' %}" type="text/css" rel="stylesheet"> #}
     {# <link href="{% static 'css/main.css' %}" type="text/css" rel="stylesheet"> #}
     {# <link rel="stylesheet" href="{% static 'css/main.css' %}">#}
@@ -158,15 +164,6 @@
                                     </p>
                                 </a>
                                 <ul class="nav nav-treeview">
-                                    {% if person_typed.is_patient %}
-                                        <li class="nav-item">
-                                            <a href="" class="nav-link">
-                                                &nbsp;&nbsp;&nbsp;&nbsp;
-                                                <i class="far fa-edit nav-icon"></i>
-                                                <p>{% trans "Current survey" %}</p>
-                                            </a>
-                                        </li>
-                                    {% endif %}
                                     <li class="nav-item">
                                         <a href="" class="nav-link">
                                             &nbsp;&nbsp;&nbsp;&nbsp;
@@ -208,16 +205,16 @@
                                             {{ user.person.user_informations_simple }}
                                         </h1>
                                     {% else %}
-                                        <img id="logo" src="{% static 'img/anamnesis-logo.png' %}"
+                                        <img id="logo" src="{% static 'img/books.png' %}"
                                              class="table-avatar"
-                                             title="{% trans 'Anamnesis logo' %}"
-                                             alt="{% trans 'Anamnesis logo' %}"
+                                             title="{% trans "Books" %}"
+                                             alt="{% trans "Books" %}"
                                              style="max-width: 100px; margin-right: 20px"/>
                                         {% trans "Anamnesis" %}
-                                        <img id="logo" src="{% static 'img/doctor.jpg' %}"
+                                        <img id="logo" src="{% static 'img/books.png' %}"
                                              class="table-avatar"
-                                             title="{% trans 'Anamnesis logo' %}"
-                                             alt="{% trans 'Anamnesis logo' %}"
+                                             title="{% trans "Books" %}"
+                                             alt="{% trans "Books" %}"
                                              style="margin-left: 20px; max-width: 148px; border-radius: 10%;"/>
                                     {% endif %}
                                 {% endblock %}

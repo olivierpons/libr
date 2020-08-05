@@ -15,7 +15,7 @@ class RegisterView(generic.FormView):
     form_class = RegisterForm
 
     def get_success_url(self):
-        return reverse('index')
+        return reverse('app_home')
 
     def form_valid(self, form):
         first_name = form.cleaned_data['first_name']

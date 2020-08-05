@@ -21,6 +21,7 @@ urlpatterns = [
     path('profile', ProfileView.as_view(), name='profile'),
     path('register', RegisterView.as_view(), name='register'),
     path('register-success', IndexView.as_view(), name='register_success'),
+    path('j/', IndexView.as_view(), name='register_success'),
 ]
 
 

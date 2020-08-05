@@ -11,5 +11,5 @@ class LogoutView(LoginRequiredMixin, generic.View):
     @staticmethod
     def get(request):
         logout(request)
-        messages.info(request, _("Successful disconnection"))
-        return redirect('index')
+        messages.info(request, _("Logout successful"))
+        return redirect('app_home')
