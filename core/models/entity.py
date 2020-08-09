@@ -10,17 +10,16 @@ from core.models.base import BaseModel
 from django.utils.translation import ugettext_lazy as _
 
 from core.models.phone import Phone
-from core.models.phone_type import PhoneType
 
 
 class Entity(BaseModel):
     is_physical = models.BooleanField(default=True)
     addresses = models.ManyToManyField('Address', through='EntityAddress',
-                                       related_name='entities')
+                                       blank=True, related_name='entities')
     phones = models.ManyToManyField('Phone', through='EntityPhone',
-                                    related_name='entities')
+                                    blank=True, related_name='entities')
     activities = models.ManyToManyField(Activity,
-                                        related_name='entities')
+                                        blank=True, related_name='entities')
 
     def is_person(self):
         return hasattr(self, 'person')
@@ -56,18 +55,23 @@ class EntityAddress(BaseModel):
 
 
 class EntityPhone(BaseModel):
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE,
-                               blank=False, null=False)
-    phone_type = models.ForeignKey(PhoneType, models.CASCADE,
-                                   blank=False, null=False)
-    phone = models.ForeignKey(Phone, on_delete=models.CASCADE,
-                              blank=False, null=False)
+
+    class Type(models.IntegerChoices):
+        MOBILE = 1, _('Mobile')
+        EMERGENCY = 2, _('Emergency')
+        HOME = 3, _('Home')
+        WORK = 4, _('Work')
+
+    type = models.IntegerField(default=Type.MOBILE, choices=Type.choices)
+
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE, null=False)
+    phone = models.ForeignKey(Phone, on_delete=models.CASCADE, null=False)
     # comment might be the phone entered by the user:
     comment = models.TextField(default=None, blank=True, null=True)
 
     def __str__(self):
-        result = f'{str(self.entity)} -> {str(self.phone)} ' \
-                 f'({str(self.phone_type)})'
+        result = f'{str(self.entity)} -> {str(self.text)} ' \
+                 f'({str(self.get_type_display())})'
         if self.comment:  # add the comment
             return f'{result} - {str(self.comment)}'
         return result

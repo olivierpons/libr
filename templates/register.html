@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block body %}
+    <body class="hold-transition register-page">
+    <div class="register-box">
+        <div class="card">
+            <div class="card-body register-card-body">
+                <div class="register-logo">
+                    <img id="logo" src="{% static 'img/books.png' %}"
+                         class="table-avatar"
+                         title="{% trans "Books" %}"
+                         alt="{% trans "Books" %}"
+                         style="width: 30%; margin-right: 20px"/>
+
+                    <a href="{% url 'app_home' %}">
+                        <b>{% trans "Libr" %}</b>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body register-card-body">
+                <p class="login-box-msg">Register a new membership</p>
+                {# to ignore warnings: #}
+                <label for="first_name" style="display: none"></label>
+                <label for="last_name" style="display: none"></label>
+                <label for="email" style="display: none"></label>
+                <label for="password1" style="display: none"></label>
+                <label for="password2" style="display: none"></label>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <label class="col-form-label" for="inputError">
+                                <i class="far fa-times-circle"></i>
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </label>
+                        {% endif %}
+                        <div class="input-group mb-3">
+                            {{ field }}
+                        </div>
+                        {% if field.errors %}
+                            {# suppress JSCheckFunctionSignatures #}
+                            <script>$(() => {
+                                $('#{{ field.auto_id }}').addClass('is-invalid')
+                            });</script>
+                        {% endif %}
+                    {% endfor %}
+                    {# suppress JSCheckFunctionSignatures #}
+                    <script>$(() => {
+                        $('.hqf-fa').each(function () {
+                            let fa = $(this).attr('fa');
+                            if (typeof(fa) !== 'string') {
+                                return;
+                            }
+                            if (fa.length===0) {
+                                return;
+                            }
+                            $(this).after(
+                                $('<div />').addClass('input-group-append')
+                                    .append(
+                                        $('<div />').addClass('input-group-text')
+                                            .append(
+                                                $('<span />').addClass(fa)
+                                            )
+                                    )
+                            )
+                        });
+                    });</script>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="icheck-primary">
+                                <input type="checkbox" value="agree"
+                                       id="agree-terms" name="agree-terms">
+                                <label for="agree-terms">
+                                    {% blocktrans trimmed %}
+                                        I agree to the
+                                        <a href="#" target="_blank">terms</a>
+                                    {% endblocktrans %}
+                                </label>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-4">
+                            <button type="submit" class="btn btn-primary btn-block">Register</button>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </form>
+
+                <div class="social-auth-links text-center">
+                    <p>- OR -</p>
+                    <p class="mb-0">
+                        <a href="{% url 'login' %}" class="btn btn-block btn-outline-primary">
+                            {% trans "I already have a membership" %}
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+            <!-- /.form-box -->
+        </div><!-- /.card -->
+    </div>
+    <!-- /.register-box -->
+
+    </body>
+{% endblock %}

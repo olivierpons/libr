@@ -1,5 +1,6 @@
-# Byte-compiled / optimized / DLL files
 .idea/
+upload/
+uploads/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

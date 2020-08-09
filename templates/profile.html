@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+
+    <div class="row">
+        <!-- left column -->
+        <div class="col-md-6">
+            <!-- general form elements -->
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {% trans "Personal informations" %}
+                    </h3>
+                </div>
+                <!-- /.card-header -->
+                <!-- form start -->
+                <form action="" role="form" method="post">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        {% for field in profile_form %}
+                            {% for widget in field.subwidgets %}
+                                <div class="form-group">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ widget }}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+
+
+                        <div class="form-group">
+                            {{ phone_formset.management_form }}
+                            <label class="mb-3">{% trans "Phones" %}</label>
+                            <button class="btn btn-success formset-add" form-prefix="phone">+</button>
+                            {% for form in phone_formset %}
+                                <div class="input-group mb-3 formset-row" {% if forloop.last %}style="display: none" {% endif %}>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    </div>
+                                    {% for field in form %}
+                                        {{ field }}
+                                    {% endfor %}
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger formset-remove" form-prefix="phone">-</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ address_formset.management_form }}
+                            <label class="mb-3">{% trans "Addresses" %}</label>
+                            <button class="btn btn-success formset-add" form-prefix="address">+</button>
+                            {% for form in address_formset %}
+                                <div class="input-group mb-3 formset-row" {% if forloop.last %}style="display: none" {% endif %}>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                                    </div>
+                                    {% for field in form %}
+                                        {{ field }}
+                                    {% endfor %}
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger formset-remove" form-prefix="address">-</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+
+
+                        {% comment %}--------------------------------------------
+                        <div class="form-group">
+                            <label for="exampleInputFile">File input</label>
+                            <div class="input-group">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="exampleInputFile">
+                                    <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                                </div>
+                                <div class="input-group-append">
+                                    <span class="input-group-text" id="">Upload</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endcomment %}
+                    </div>
+                    <!-- /.card-body -->
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            {% trans "Submit" %}
+                        </button>
+                        <a href="{% url 'app_home' %}">
+                            <button type="submit" class="btn btn-danger">
+                                {% trans "Cancel" %}
+                            </button>
+                        </a>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card -->
+
+        </div>
+        <!--/.col (left) -->
+        <div class="col-md-6">&nbsp;</div>
+    </div>
+
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
