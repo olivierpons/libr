@@ -3,5 +3,6 @@ from django.views import generic
 from app.views.mixins import PersonTypedMixin
 
 
-class IndexView(PersonTypedMixin, generic.TemplateView):
-    template_name = 'index.html'
+class HomeView(PersonTypedMixin, generic.TemplateView):
+    # template_name = 'index.html'
+    template_name = 'material-design-pro/examples/home.html'
