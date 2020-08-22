@@ -1,17 +1,14 @@
 import os
-from os.path import dirname, basename
 from pathlib import Path
 
 import PIL
 from PIL import Image, ExifTags
+from django.conf import settings
 from django.db import models
 from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 
-from libr import settings
-from libr.settings import THUMBNAIL_SUBDIRECTORY, MEDIA_ROOT, \
-    UPLOAD_FOLDER_IMAGES
 from .base import BaseFile
 
 
@@ -29,7 +26,7 @@ class ImageFile(BaseFile):
     def url_thumbnail(self, default=None):
         if self.file_field:
             relative_name = self.full_upload_path.joinpath(
-                THUMBNAIL_SUBDIRECTORY, self.full_filename.name
+                settings.THUMBNAIL_SUBDIRECTORY, self.full_filename.name
             ).relative_to(Path(settings.MEDIA_ROOT).resolve())
             return reverse_lazy('url_public', args=(relative_name,))
         if default:
@@ -38,7 +35,20 @@ class ImageFile(BaseFile):
     # endregion - url_thumbnail() -
 
     # region - generate_thumbnail() -
-    def generate_thumbnail(self, img, dimensions=settings.THUMBNAIL_DIMENSIONS):
+    def generate_thumbnail(self, img, dimensions=settings.THUMBNAIL_DIMENSIONS,
+                           force_thumbnail_gen=True):
+        full_filename = Path(self.full_filename)
+        path_thumbnail = full_filename.parent.joinpath(
+            settings.THUMBNAIL_SUBDIRECTORY
+        )
+        try:
+            os.makedirs(path_thumbnail)
+        except FileExistsError:
+            pass
+        thumb_file = path_thumbnail.joinpath(full_filename.name)
+        if Path(thumb_file).is_file() and not force_thumbnail_gen:
+            return
+
         w_thumbnail, h_thumbnail = dimensions
         # calculate how much we need to resize for both dimensions:
         percent = min(w_thumbnail / float(img.size[0]),
@@ -47,18 +57,13 @@ class ImageFile(BaseFile):
                           int(float(img.size[1]) * percent)),
                          PIL.Image.ANTIALIAS)
 
-        full_filename = Path(self.full_filename)
-        path_thumbnail = full_filename.parent.joinpath(THUMBNAIL_SUBDIRECTORY)
-        try:
-            os.makedirs(path_thumbnail)
-        except FileExistsError:
-            pass
-        img.save(path_thumbnail.joinpath(full_filename.name))
+        img.save(thumb_file)
     # endregion - generate_thumbnail() -
 
     def save(self, *args, **kwargs):
+        force_thumbnail_gen = kwargs.pop('force_thumbnail_gen', True)
         super().save(*args, **kwargs)
-        # after update, if image is rotated, make it "the right way":
+        # after update, if image is rotated, "de-rotate" it:
         img = Image.open(self.full_filename)
         try:
             # rotation img code
@@ -93,4 +98,4 @@ class ImageFile(BaseFile):
             # cases: image don't have getexif
             # -> ignore this "rotation img" code, just continue
             pass
-        self.generate_thumbnail(img)
+        self.generate_thumbnail(img, force_thumbnail_gen=force_thumbnail_gen)

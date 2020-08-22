@@ -6,6 +6,7 @@ from pathlib import Path
 import cv2
 import numpy
 from PIL import Image
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
@@ -13,7 +14,6 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from core.models.file.image import ImageFile
-from libr.settings import MEDIA_ROOT, UPLOAD_FOLDER_IMAGES
 
 
 class Command(BaseCommand):
@@ -21,7 +21,8 @@ class Command(BaseCommand):
            "convert them to jpg (maximum quality)"
 
     def add_arguments(self, parser):
-        default_folder_dst = UPLOAD_FOLDER_IMAGES
+        # all images uploaded go into UPLOAD_FOLDER_IMAGES by default:
+        default_folder_dst = settings.UPLOAD_FOLDER_IMAGES
         parser.add_argument(
             '--continue-on-low-quality', type=int, default=1,
             help=_("If minimum quality not reached, still continue "
@@ -88,7 +89,7 @@ class Command(BaseCommand):
             folder_dst = Path(options['folder_dst'])
         except KeyError:
             raise CommandError(_(f"Folder destination is mandatory."))
-        folder_dst_full = Path(MEDIA_ROOT, folder_dst).absolute()
+        folder_dst_full = Path(settings.MEDIA_ROOT, folder_dst).absolute()
         if not folder_dst_full.exists():
             raise_error(_(
                 f"Folder destination \"{folder_dst}\" doesn't exist."))
@@ -101,7 +102,7 @@ class Command(BaseCommand):
         # endregion - folder destination -
         # region - out option (0=silent, 1=verbose) -
 
-        def out_silent(msg):
+        def out_silent(message, **kwargs):
             pass
 
         def out_verbose(msg, **kwargs):
@@ -210,8 +211,6 @@ class Command(BaseCommand):
         else:
             out(f"{total_len} file(s). Processing all files", is_success=True)
 
-        dst_absolute = Path(MEDIA_ROOT).absolute()
-
         for idx, filename_src in enumerate(files_grabbed):
 
             if 0 < max_conversions == idx:
@@ -219,18 +218,18 @@ class Command(BaseCommand):
                 break
 
             out(f"Processing file {idx+1}/{total_len}...")
-            filename_dst = Path(
+            name_dst_full = Path(
                 folder_dst_full,
                 Path(filename_src).parent.relative_to(folder_src),
                 path.basename(path.splitext(filename_src)[0])+'.jpg')
             try:
-                os.makedirs(Path(filename_dst).parent)
+                os.makedirs(Path(name_dst_full).parent)
             except FileExistsError:
                 pass
             out([f"Converting "
-                 f"\"{filename_dst.relative_to(folder_dst_full)}\"..."])
+                 f"\"{name_dst_full.relative_to(folder_dst_full)}\"..."])
 
-            if filename_dst.is_file():
+            if name_dst_full.is_file():
                 message = _("File already exists. ")
                 if not override_existing:
                     out(message + f"Override option off, skipping.",
@@ -246,9 +245,9 @@ class Command(BaseCommand):
             img_src = cv2.imread(filename_src)
 
             while True:
-                rgb_img.save(str(filename_dst), quality=quality,
+                rgb_img.save(str(name_dst_full), quality=quality,
                              progressive=progressive)
-                img_dst = cv2.imread(str(filename_dst))
+                img_dst = cv2.imread(str(name_dst_full))
 
                 # Compute 'Mean Squared Error': it's the sum of the squared
                 # difference between the two images.
@@ -270,12 +269,13 @@ class Command(BaseCommand):
                     if quality == 100:
                         if continue_on_low_quality:
                             out([message,
-                                 "Max quality reached. "
-                                 "continue-on-low-quality option is On. "
-                                 "Not stopping, next file."], is_warning=True)
+                                 _("Max quality reached. "
+                                   "continue-on-low-quality option is On. "
+                                   "Not stopping, next file.")],
+                                is_warning=True)
                             break
-                        raise CommandError("Max quality reached. "
-                                           "Still not Ok. Stopping.")
+                        raise CommandError(_("Max quality reached. "
+                                             "Still not Ok. Stopping."))
                     # find the right increment (after to 90 = 1 by 1):
                     for limits, q_step in {(0, 80): 5,
                                            (81, 90): 2,
@@ -283,33 +283,37 @@ class Command(BaseCommand):
                         if limits[0] <= quality <= limits[1]:
                             quality += q_step
                     quality = min(quality, 100)
-                    out(message + f" Increasing quality to {quality}")
+                    out('{} {}'.format(
+                        message,
+                        _("Increasing quality to {}").format(quality)))
                 else:
-                    out(f"{result}, it's acceptable. Conversion done.",
-                        is_success=True)
-                    filename_rel = str(filename_dst.relative_to(dst_absolute))
+                    out(_("{}, it's acceptable. "
+                          "Conversion done.").format(result), is_success=True)
+                    name_dst_rel = str(name_dst_full.relative_to(folder_dst_full))
                     try:
                         image = ImageFile.objects.filter(
-                            Q(image_file=str(filename_dst)) |
-                            Q(image_file=filename_rel))
+                            Q(image_file=str(name_dst_full)) |
+                            Q(image_file=name_dst_rel))
                         if len(image) > 1:
-                            for i in range(1, len(image)):
+                            for i in image[1:]:
                                 image[i].delete()
+                            image = image[0]
                         elif len(image) == 1:
                             image = image[0]
                         else:
-                            image = ImageFile(image_file=filename_rel)
+                            image = ImageFile(image_file=name_dst_rel)
                     except ImageFile.DoesNotExist:
-                        image = ImageFile(image_file=filename_rel)
+                        image = ImageFile(image_file=name_dst_rel)
 
+                    image.is_path_relative = True
                     image.original_filename = str(filename_src)
                     image.creator = creator
                     image.informations = f"Mean Squared Error: {mse:.2f}"
                     image.save()
                     break
-            out("File \"{}\" processed. ({:0.4}% done)".format(
-                filename_dst.relative_to(dst_absolute),
+            out(_("File '{}' processed. ({:0.4}% done)").format(
+                name_dst_full.relative_to(folder_dst_full),
                 (idx+1)*100/total_len
             ), is_success=True)
 
-        out(f"Job finished.", is_success=True)
+        out(_("Job finished."), is_success=True)

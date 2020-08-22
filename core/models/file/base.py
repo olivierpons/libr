@@ -4,6 +4,7 @@ from os.path import splitext, basename
 from pathlib import Path
 
 import magic
+from django.conf import settings
 from django.db import models
 from django.templatetags.static import static
 from django.urls import reverse_lazy
@@ -13,7 +14,6 @@ from django.utils.translation import gettext_lazy as _
 from core.models.base import BaseModel
 from core.models.entity import Entity
 from core.utils import UidMixin
-from libr import settings
 
 
 class BaseFile(UidMixin, BaseModel):
@@ -39,7 +39,9 @@ class BaseFile(UidMixin, BaseModel):
 
     @cached_property
     def full_filename(self):
-        return Path(settings.MEDIA_ROOT, str(self.file_field)).resolve()
+        if self.is_path_relative:
+            return Path(settings.MEDIA_ROOT, str(self.file_field)).resolve()
+        return Path(str(self.file_field)).resolve()
 
     def url(self, default=None):
         if self.file_field:
@@ -57,6 +59,7 @@ class BaseFile(UidMixin, BaseModel):
     informations = models.TextField(default=None, null=True, blank=True)
     original_filename = models.CharField(max_length=200,
                                          blank=True, default=None, null=True, )
+    is_path_relative = models.BooleanField(default=True)
 
     def __init__(self, *args, **kwargs):
         if self.upload_directory != '':

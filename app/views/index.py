@@ -5,4 +5,4 @@ from app.views.mixins import PersonTypedMixin
 
 class HomeView(PersonTypedMixin, generic.TemplateView):
     # template_name = 'index.html'
-    template_name = 'material-design-pro/examples/home.html'
+    template_name = 'material-design-pro/home.html'

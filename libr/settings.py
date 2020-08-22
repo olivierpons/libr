@@ -162,6 +162,8 @@ STATIC_ROOT = settings['STATIC_ROOT']
 ALLOWED_HOSTS += [gethostname(), '127.0.0.1', '.ngrok.io'] + \
                  gethostbyname_ex(gethostname())[2]
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = None
+
 if DEBUG:
     WEBSITE_NAME = 'libr.hqf.fr'
     ALLOWED_HOSTS += [WEBSITE_NAME]

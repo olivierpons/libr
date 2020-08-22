@@ -2,6 +2,7 @@ from os import path
 from os.path import join
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
@@ -10,8 +11,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from core.models.file.image import ImageFile
-from libr import settings
-from libr.settings import MEDIA_ROOT, UPLOAD_FOLDER_IMAGES
 
 
 class Command(BaseCommand):
@@ -120,7 +119,7 @@ class Command(BaseCommand):
                 if p.is_file():
                     try:
                         with transaction.atomic():
-                            rel = join(UPLOAD_FOLDER_IMAGES,
+                            rel = join(settings.UPLOAD_FOLDER_IMAGES,
                                        p.relative_to(folder_dst))
                             image.image_file = rel
                             image.save()

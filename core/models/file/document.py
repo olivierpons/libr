@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 
 from core.models.file.base import BaseFile
-from libr import settings
 
 
 class DocumentFile(BaseFile):

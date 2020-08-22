@@ -1,4 +1,5 @@
-from libr import settings
+from django.conf import settings
+
 from .document import DocumentFile
 
 
