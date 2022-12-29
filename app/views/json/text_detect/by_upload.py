@@ -56,6 +56,7 @@ class TextDetectByUploadView(BaseJsonView):
         height = max(32, math.ceil(height / 32) * 32)
         width = max(32, math.ceil(width / 32) * 32)
         img = cv2.resize(img, (width, height))
+        print(pytesseract.image_to_string(img))
         return JsonResponse({'success': True,
                              'result': pytesseract.image_to_string(img)},
                             safe=False)

@@ -2,7 +2,6 @@ import ipaddress
 import os
 import re
 from pathlib import Path
-from django.utils.translation import gettext_lazy as _
 from django.urls import reverse_lazy
 from socket import gethostname, gethostbyname, gethostbyname_ex
 
@@ -41,8 +40,8 @@ def dir_parser(error_message_if_doesnt_exist):
 
 def parser_array_of_str(error_message):
     return [eval,
-            lambda tab: isinstance(tab, list) and all([
-                isinstance(x, str) for x in tab]),
+            lambda tab: (isinstance(tab, list) or isinstance(tab, tuple))
+                        and all([isinstance(x, str) for x in tab]),
             error_message]  # ! array of str
 
 
@@ -85,10 +84,10 @@ environment_variables = LazyDict({
     # https://docs.djangoproject.com/en/dev/ref/settings/
     'ALLOWED_HOSTS': {
         'default': '[]', 'required': True,  # default = no hosts
-        'parser': parser_array_of_str(_("ALLOWED_HOSTS = list of str only!"))},
+        'parser': parser_array_of_str("ALLOWED_HOSTS = list of str only!")},
     'INTERNAL_IPS': {
         'default': '["127.0.0.1", ]', 'required': True,
-        'parser': parser_array_of_str(_("INTERNAL_IPS = list of str only!"))},
+        'parser': parser_array_of_str("INTERNAL_IPS = list of str only!")},
 
     # 'DATABASE_ENGINE' = 'django.db.backends.postgresql_psycopg2',
     'DATABASE_ENGINE': {'default': 'django.db.backends.sqlite3', },
@@ -159,14 +158,15 @@ STATIC_ROOT = settings['STATIC_ROOT']
 # endregion - custom settings (to put in environment settings) -
 
 # https://stackoverflow.com/a/40665906/106140
-ALLOWED_HOSTS += [gethostname(), '127.0.0.1', '.ngrok.io'] + \
-                 gethostbyname_ex(gethostname())[2]
+ALLOWED_HOSTS = tuple(ALLOWED_HOSTS) + tuple([
+    gethostname(), '127.0.0.1', '.ngrok.io',
+]) + tuple(gethostbyname_ex(gethostname())[2])
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 if DEBUG:
     WEBSITE_NAME = 'libr.hqf.fr'
-    ALLOWED_HOSTS += [WEBSITE_NAME]
+    ALLOWED_HOSTS += (WEBSITE_NAME,)
     # add my (own) company HQF for debugging purposes:
     to_add = []
     for e in ['com', 'fr']:
@@ -178,16 +178,16 @@ if DEBUG:
                 if without_ext and '.hqf' not in without_ext:
                     to_add.append('{}.hqf.{}'.format(without_ext, e))
     if len(to_add):
-        ALLOWED_HOSTS += to_add
+        ALLOWED_HOSTS += tuple(to_add)
     # add everything on port 8000:
     for i in range(8000, 8003):
-        ALLOWED_HOSTS += [f'{a}:{i}' for a in ALLOWED_HOSTS]
-        INTERNAL_IPS += [f'{a}:{i}' for a in INTERNAL_IPS]
+        ALLOWED_HOSTS += tuple([f'{a}:{i}' for a in ALLOWED_HOSTS])
+        INTERNAL_IPS += tuple([f'{a}:{i}' for a in INTERNAL_IPS])
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     WEBSITE_NAME = 'libr.com'
     # specific to mc-media
-    ALLOWED_HOSTS = ALLOWED_HOSTS + ['.mc-media.com', '.libr.com', ]
+    ALLOWED_HOSTS += ('.mc-media.com', '.libr.com', )
     SECURE_HSTS_SECONDS = True
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -196,7 +196,7 @@ else:
 
 SERVER_EMAIL = f'root@{WEBSITE_NAME}'
 
-ALLOWED_HOSTS = set(ALLOWED_HOSTS)
+ALLOWED_HOSTS = tuple(set(ALLOWED_HOSTS))
 IGNORABLE_404_URLS = (
     re.compile(r'\.(php|cgi)$'),
     re.compile(r'.*phpmyadmin.*'),
@@ -325,6 +325,7 @@ HIJACK_LOGOUT_REDIRECT_URL = reverse_lazy('app_home')
 IMG_NO_IMAGE_YET = 'img/no-image-yet.png'  # use: static(IMG_NO_IMAGE_YET)
 # https://docs.djangoproject.com/en/dev/ref/settings/#append-slash
 APPEND_SLASH = True
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 """
 import logging

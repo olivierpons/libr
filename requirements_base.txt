@@ -1,0 +1,33 @@
+Django
+Pillow
+Unidecode
+asgiref
+dj_database_url
+django-colorfield
+django-cors-headers
+django-crontab
+django-hijack
+django-money
+django-role-permissions
+djangorestframework
+fcm-django
+fleep
+mixer
+numpy
+phonenumbers
+psycopg2
+psycopg2-binary
+py-moneyed
+python-dateutil
+# install python-magic-bin under Windows if this fails:
+python-magic-bin; platform_system == "Windows"
+python-magic; platform_system == "Linux"
+pytz
+requests
+scikit-image
+sentry-sdk
+sqlparse
+unidecode
+uritemplate
+urllib3
+whitenoise

@@ -7,7 +7,7 @@ from core.models.address import Address
 from core.models.address_type import AddressType
 from core.models.base import BaseModel
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from core.models.phone import Phone
 
