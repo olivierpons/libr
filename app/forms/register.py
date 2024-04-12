@@ -36,6 +36,7 @@ class RegisterForm(forms.Form):
             max_length=200,
             widget=widgets.PasswordInput(
                 attrs=_attrs(_("Retype password"), 'fas fa-lock')))
+
         self.fields = OrderedDict([
             ('first_name', first_name),
             ('last_name', last_name),
