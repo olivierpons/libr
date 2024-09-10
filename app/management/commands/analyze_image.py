@@ -65,41 +65,30 @@ class Command(OutMixin, BaseCommand):
         if max_images > 0:
             image_files = image_files[:max_images]
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Processing {len(image_files)} out of {total_images} images found."
-            )
-        )
-
+        self.out_success(f"Processing {len(image_files)} out of {total_images} images found.")
         for idx, image_path in enumerate(image_files, 1):
             if verbose:
-                self.stdout.write(
-                    f"Processing image {idx}/{len(image_files)}: {image_path.name}"
-                )
+                self.out(f"Processing image {idx}/{len(image_files)}: {image_path.name}")
 
             try:
-                results: List[Dict[str, Any]] = self.process_image(image_path)
-                self.save_results(results, folder_dst, image_path.stem)
+                results, annotated_image = self.process_image(image_path)
+                self.save_results(results, annotated_image, folder_dst, image_path.stem)
                 if verbose:
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"  Analysis completed for {image_path.name}"
-                        )
-                    )
+                    self.out_success(f"  Analysis completed for {image_path.name}")
             except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(f"  Error processing {image_path.name}: {str(e)}")
-                )
+                self.out_error(f"  Error processing {image_path.name}: {str(e)}")
 
-        self.stdout.write(self.style.SUCCESS("Processing completed."))
+        self.out_success("Processing completed.")
 
-    def process_image(self, image_path: Path) -> List[Dict[str, Any]]:
+    def process_image(self, image_path: Path) -> Tuple[List[Dict[str, Any]], np.ndarray]:
         """Process a single image, detecting text regions and extracting font features."""
         image: np.ndarray = cv2.imread(str(image_path))
         gray: np.ndarray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         text_regions: List[Tuple[int, int, int, int]] = self.detect_text_regions(gray)
         results: List[Dict[str, Any]] = []
+
+        annotated_image = image.copy()
 
         for i, (x, y, w, h) in enumerate(text_regions):
             region: np.ndarray = gray[y : y + h, x : x + w]
@@ -115,7 +104,10 @@ class Command(OutMixin, BaseCommand):
                 }
             )
 
-        return results
+            # Draw rectangle on the annotated image
+            cv2.rectangle(annotated_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        return results, annotated_image
 
     @staticmethod
     def detect_text_regions(gray: np.ndarray) -> List[Tuple[int, int, int, int]]:
@@ -138,8 +130,7 @@ class Command(OutMixin, BaseCommand):
 
         return text_regions
 
-    @staticmethod
-    def extract_font_features(image: np.ndarray) -> np.ndarray:
+    def extract_font_features(self, image: np.ndarray) -> np.ndarray:
         """Extract HOG features from the image to represent font characteristics."""
         resized: np.ndarray = cv2.resize(image, (100, 100))
         features, _ = hog(
@@ -151,11 +142,14 @@ class Command(OutMixin, BaseCommand):
         )
         return features
 
-    @staticmethod
-    def save_results(
-        results: List[Dict[str, Any]], folder_dst: Path, image_name: str
-    ) -> None:
-        """Save analysis results to a JSON file."""
+    def save_results(self, results: List, annotated_image: np.ndarray, folder_dst: Path, image_name: str):
+        """Save analysis results to a JSON file and the annotated image."""
+        # Save JSON results
         result_file: Path = folder_dst / f"{image_name}_analysis.json"
         with open(result_file, "w", encoding="utf-8") as f:
             json.dump(results, f, ensure_ascii=False, indent=2)
+
+        # Save annotated image
+        image_file: Path = folder_dst / f"{image_name}_annotated.jpg"
+        result = cv2.imwrite(str(image_file), annotated_image)
+        self.out(f"{annotated_image=} => {result=}")

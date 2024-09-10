@@ -12,6 +12,7 @@ django-role-permissions
 djangorestframework
 fcm-django
 fleep
+imutils
 mixer
 numpy
 opencv-python
