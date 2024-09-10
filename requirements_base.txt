@@ -15,6 +15,7 @@ fleep
 mixer
 numpy
 opencv-python
+pytesseract
 phonenumbers
 psycopg2
 psycopg2-binary
